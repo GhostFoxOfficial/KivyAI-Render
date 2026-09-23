@@ -20,6 +20,7 @@ def predict(message, history):
         "X-Title": "KivyAI Web"
     }
     
+    # Initialize messages with your custom system rules
     formatted_messages = [
         {
             "role": "system",
@@ -27,19 +28,17 @@ def predict(message, history):
         }
     ]
     
-    # CORRECTED HISTORY PARSING FOR GRADIO
-    for chat_turn in history:
-        if isinstance(chat_turn, dict):
-            role = chat_turn.get("role")
-            content = chat_turn.get("text", "")
-            if role in ["user", "assistant"] and content:
-                formatted_messages.append({"role": role, "content": content})
-        elif isinstance(chat_turn, (list, tuple)) and len(chat_turn) == 2:
-            if chat_turn[0]:
-                formatted_messages.append({"role": "user", "content": chat_turn[0]})
-            if chat_turn[1]:
-                formatted_messages.append({"role": "assistant", "content": chat_turn[1]})
+    # MODERN GRADIO HISTORY PARSING
+    # 'history' is already a clean list of {'role': '...', 'content': '...'} dicts.
+    # We append those directly to our messages payload.
+    for turn in history:
+        if isinstance(turn, dict):
+            formatted_messages.append({
+                "role": turn.get("role"),
+                "content": turn.get("content", "")
+            })
         
+    # Append the brand new user message
     formatted_messages.append({"role": "user", "content": message})
 
     payload = {
@@ -70,15 +69,17 @@ def predict(message, history):
                     except json.JSONDecodeError:
                         continue
         else:
-            yield f"Error: Cloud AI server returned status code {response.status_code}. Please check your OpenRouter API key and balance."
+            yield f"Error: OpenRouter API error code {response.status_code}. Verify your key and credits."
             
     except requests.exceptions.Timeout:
-        yield "Error: Connection timed out."
+        yield "Error: Cloud connection timed out."
     except requests.exceptions.ConnectionError:
-        yield "Error: Could not reach OpenRouter server."
+        yield "Error: Unable to establish connection to OpenRouter."
+
 
 demo = gr.ChatInterface(
     predict, 
+    type="messages",
     title="KivyAI", 
     description="Your fully AI."
 )
