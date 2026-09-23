@@ -5,7 +5,7 @@ import os
 
 # OpenRouter configuration 
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
-MODEL_NAME = "qwen/qwen-2.5-3b-instruct:free"
+MODEL_NAME = "openrouter/auto"
 
 def predict(message, history):
     api_key = os.getenv("OPENROUTER_API_KEY")
