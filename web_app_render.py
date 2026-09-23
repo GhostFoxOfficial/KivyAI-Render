@@ -27,6 +27,7 @@ def predict(message, history):
         }
     ]
     
+    # CORRECTED HISTORY PARSING FOR GRADIO
     for chat_turn in history:
         if isinstance(chat_turn, dict):
             role = chat_turn.get("role")
@@ -62,14 +63,14 @@ def predict(message, history):
                     try:
                         chunk = json.loads(line_str)
                         if 'choices' in chunk and len(chunk['choices']) > 0:
-                            delta = chunk['choices'].get('delta', {})
+                            delta = chunk['choices'][0].get('delta', {})
                             if 'content' in delta:
                                 partial_text += delta['content']
                                 yield partial_text
                     except json.JSONDecodeError:
                         continue
         else:
-            yield f"Error: Cloud AI server returned status code {response.status_code}."
+            yield f"Error: Cloud AI server returned status code {response.status_code}. Please check your OpenRouter API key and balance."
             
     except requests.exceptions.Timeout:
         yield "Error: Connection timed out."
@@ -83,7 +84,6 @@ demo = gr.ChatInterface(
 )
 
 if __name__ == "__main__":
-
     render_port = int(os.environ.get("PORT", 7860))
     demo.launch(server_name="0.0.0.0", server_port=render_port)
-
+    
