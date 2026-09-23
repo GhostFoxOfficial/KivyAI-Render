@@ -20,7 +20,7 @@ def predict(message, history):
         "X-Title": "KivyAI Web"
     }
     
-    # Initialize messages with your custom system rules
+    # Base system instructions
     formatted_messages = [
         {
             "role": "system",
@@ -28,17 +28,25 @@ def predict(message, history):
         }
     ]
     
-    # MODERN GRADIO HISTORY PARSING
-    # 'history' is already a clean list of {'role': '...', 'content': '...'} dicts.
-    # We append those directly to our messages payload.
-    for turn in history:
-        if isinstance(turn, dict):
-            formatted_messages.append({
-                "role": turn.get("role"),
-                "content": turn.get("content", "")
-            })
+    
+    if history:
+        for chat_turn in history:
+            
+            if isinstance(chat_turn, dict):
+                role = chat_turn.get("role")
+                content = chat_turn.get("content") or chat_turn.get("text", "")
+                if role in ["user", "assistant"] and content:
+                    formatted_messages.append({"role": role, "content": content})
+            
+            
+            elif isinstance(chat_turn, (list, tuple)) and len(chat_turn) == 2:
+                user_msg, assistant_msg = chat_turn
+                if user_msg:
+                    formatted_messages.append({"role": "user", "content": str(user_msg)})
+                if assistant_msg:
+                    formatted_messages.append({"role": "assistant", "content": str(assistant_msg)})
         
-    # Append the brand new user message
+    
     formatted_messages.append({"role": "user", "content": message})
 
     payload = {
@@ -48,7 +56,7 @@ def predict(message, history):
     }
     
     try:
-        response = requests.post(API_URL, headers=headers, json=payload, timeout=60, stream=True)
+        response = requests.post(API_URL, headers=headers, json=payload, timeout=200, stream=True)
         
         if response.status_code == 200:
             partial_text = ""
@@ -69,17 +77,16 @@ def predict(message, history):
                     except json.JSONDecodeError:
                         continue
         else:
-            yield f"Error: OpenRouter API error code {response.status_code}. Verify your key and credits."
+            yield f"Error: Cloud AI server returned status code {response.status_code}. Verify your OpenRouter Key."
             
     except requests.exceptions.Timeout:
         yield "Error: Cloud connection timed out."
     except requests.exceptions.ConnectionError:
-        yield "Error: Unable to establish connection to OpenRouter."
+        yield "Error: Unable to connect to OpenRouter."
 
 
 demo = gr.ChatInterface(
     predict, 
-    type="messages",
     title="KivyAI", 
     description="Your fully AI."
 )
