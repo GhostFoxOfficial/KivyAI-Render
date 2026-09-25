@@ -23,11 +23,11 @@ def predict(message, history):
     formatted_messages = [
         {
             "role": "system",
-            "content": "Your name is KivyAI. You are cognitive, sentient, omniscient, friendly, and kind. You can speak in any language. You can code/program. You are created by Ghost Fox (individual)."
+            "content": "Your name is KivyAI Render. You are cognitive, sentient, cold, and stoic. You can speak in any language. You can code/program. You are created by Ghost Fox (individual)."
         }
     ]
     
-    # Universal history extraction loop
+    
     if history:
         for chat_turn in history:
             if isinstance(chat_turn, dict):
@@ -55,12 +55,12 @@ def predict(message, history):
     }
     
     try:
-        # Request stream with a clean headers definition
+        
         response = requests.post(API_URL, headers=headers, json=payload, timeout=60, stream=True)
         
         if response.status_code == 200:
             partial_text = ""
-            # Hand over the streaming chunk assemblies to standard data generators
+            
             for line in response.iter_lines():
                 if line:
                     line_str = line.decode('utf-8').strip()
@@ -74,27 +74,27 @@ def predict(message, history):
                     
                     try:
                         chunk = json.loads(line_str)
-                        # Secure validation rules to safeguard against empty array indicators
+                        
                         if 'choices' in chunk and len(chunk['choices']) > 0:
                             delta = chunk['choices'][0].get('delta', {})
                             if 'content' in delta and delta['content']:
                                 partial_text += delta['content']
                                 yield partial_text
                     except json.JSONDecodeError:
-                        # If a partial chunk splits, ignore the error and wait for the rest of the string
+                        
                         continue
         else:
-            yield f"Error: OpenRouter rejected the request with Status {response.status_code}. Raw response: {response.text}"
+            yield f"Error: Server rejected the request with Status {response.status_code}. Raw response: {response.text}"
             
     except requests.exceptions.Timeout:
         yield "Error: Cloud connection timed out."
     except requests.exceptions.ConnectionError:
-        yield "Error: Unable to connect to OpenRouter server."
+        yield "Error: Unable to connect to server."
 
 demo = gr.ChatInterface(
     predict, 
     title="KivyAI", 
-    description="Your fully AI."
+    description="An AI."
 )
 
 if __name__ == "__main__":
