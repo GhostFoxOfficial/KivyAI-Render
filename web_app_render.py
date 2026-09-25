@@ -17,7 +17,7 @@ def predict(message, history):
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://render.com", 
-        "X-Title": "KivyAI Web"
+        "X-Title": "KivyAI Render"
     }
     
     formatted_messages = [
@@ -93,8 +93,8 @@ def predict(message, history):
 
 demo = gr.ChatInterface(
     predict, 
-    title="KivyAI", 
-    description="An AI."
+    title="KivyAI Render", 
+    description="Render version of KivyAI."
 )
 
 if __name__ == "__main__":
